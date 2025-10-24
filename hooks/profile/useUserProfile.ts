@@ -52,6 +52,8 @@ export const useUserDetails = (userId: Id<"users"> | undefined) => {
   const removeFriendMutation = useMutation(api.friendships.removeFriend);
 
   // Loading state
+  // Check if profile is restricted (query returns null)
+  const restrictionError = userProfile === null;
   const loading = (userProfile === undefined && !isBlocking) || currentUserId === undefined;
 
   // Action handlers
@@ -216,6 +218,7 @@ export const useUserDetails = (userId: Id<"users"> | undefined) => {
     // State
     userProfile,
     loading,
+    restrictionError,
     showBlockConfirmation,
     isBlocking,
     showRemoveFriendConfirmation,

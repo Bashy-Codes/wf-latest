@@ -77,9 +77,9 @@ export const ReceivedGiftsSection = ({ onGiftPress }: ReceivedGiftsSectionProps)
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={() => <EmptyState halfScreen />}
+        ListEmptyComponent={() => <EmptyState fullScreen />}
         contentContainerStyle={{
-          paddingBottom: verticalScale(20),
+          paddingVertical: verticalScale(20),
         }}
       />
     </View>

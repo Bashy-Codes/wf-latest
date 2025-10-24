@@ -44,6 +44,7 @@ export const PhotosSection: React.FC<PhotosSectionProps> = ({ userId, isFriend =
         style={styles.photo}
         contentFit="cover"
         transition={200}
+        placeholder={"/assets/images/photo.png"}
       />
     </TouchableOpacity>
   ), [handlePhotoPress]);

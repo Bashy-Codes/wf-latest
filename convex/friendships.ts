@@ -4,7 +4,7 @@ import { Id } from "./_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { createNotification } from "./notifications";
-import { areFriends, calculateAge, hasPendingRequest } from "./helpers";
+import { areFriends, calculateAge, hasPendingRequest, checkUsersPrivacy } from "./helpers";
 import { r2 } from "./storage";
 
 async function batchEnrichProfiles(
@@ -103,6 +103,11 @@ export const sendFriendRequest = mutation({
     const receiver = await ctx.db.get(args.receiverId);
     if (!receiver) {
       throw new Error("User not found");
+    }
+
+    const canInteract = await checkUsersPrivacy(ctx, currentUserId, args.receiverId);
+    if (!canInteract) {
+      throw new Error("Cannot send friend request due to privacy restrictions");
     }
 
     await ctx.db.insert("friendRequests", {
@@ -230,6 +235,11 @@ export const acceptFriendRequest = mutation({
     if (alreadyFriends) {
       await ctx.db.delete(args.requestId);
       return { success: true };
+    }
+
+    const canInteract = await checkUsersPrivacy(ctx, currentUserId, request.senderId);
+    if (!canInteract) {
+      throw new Error("Cannot accept friend request due to privacy restrictions");
     }
 
     // Create dual friendship records for efficient one-direction queries

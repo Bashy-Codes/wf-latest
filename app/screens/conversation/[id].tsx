@@ -1,38 +1,56 @@
-import React, { useCallback, useMemo } from "react";
-import { StyleSheet, ActivityIndicator, View } from "react-native";
-import { FlashList } from "@shopify/flash-list";
-import { useLocalSearchParams } from "expo-router";
-import { verticalScale } from "react-native-size-matters";
-import { useTranslation } from "react-i18next";
-import { useTheme } from "@/lib/Theme";
-import { useConversation } from "@/hooks/conversations/useConversation";
-import { useMessages } from "@/hooks/conversations/useMessages";
-import { MessageData } from "@/types/conversations";
-import { shouldShowTimeSeparator, formatTimeSeparator } from "@/utils/chatTimeFormat";
+import { useCallback, useMemo, memo } from "react"
+import { StyleSheet } from "react-native"
+import { FlashList } from "@shopify/flash-list"
+import { useLocalSearchParams } from "expo-router"
+import { verticalScale } from "react-native-size-matters"
+import { useTranslation } from "react-i18next"
+import { useTheme } from "@/lib/Theme"
+import { useConversation } from "@/hooks/conversations/useConversation"
+import { useMessages } from "@/hooks/conversations/useMessages"
+import type { MessageData } from "@/types/conversations"
+import { shouldShowTimeSeparator, formatTimeSeparator } from "@/utils/chatTimeFormat"
 
 // components
-import { KeyboardHandler } from "@/components/common/KeyboardHandler";
-import { ConfirmationModal } from "@/components/common/ConfirmationModal";
-import { EmptyState } from "@/components/EmptyState";
-import { ConversationHeader } from "@/components/conversations/ConversationHeader";
-import { MessageBubble } from "@/components/conversations/MessageBubble";
-import { MessageInput } from "@/components/conversations/MessageInput";
-import { TimeSeparator } from "@/components/conversations/TimeSeparator";
-import { ActionModal } from "@/components/conversations/ActionModal";
-import { ScreenLoading } from "@/components/ScreenLoading";
+import { KeyboardHandler } from "@/components/KeyboardHandler"
+import { ConfirmationModal } from "@/components/common/ConfirmationModal"
+import { EmptyState } from "@/components/EmptyState"
+import { ConversationHeader } from "@/components/conversations/ConversationHeader"
+import { MessageBubble } from "@/components/conversations/MessageBubble"
+import { MessageInput } from "@/components/conversations/MessageInput"
+import { TimeSeparator } from "@/components/conversations/TimeSeparator"
+import { ActionModal } from "@/components/conversations/ActionModal"
+import { ScreenLoading } from "@/components/ScreenLoading"
+
+type ListItem = {
+  type: "message" | "timeSeparator"
+  id: string
+  data: MessageData | string
+}
+
+const MessageItemMemo = memo(
+  ({
+    item,
+    onLongPress,
+  }: {
+    item: MessageData
+    onLongPress: (message: MessageData) => void
+  }) => <MessageBubble message={item} onLongPress={onLongPress} />,
+)
+
+MessageItemMemo.displayName = "MessageItemMemo"
+
+const TimeSeparatorMemo = memo(({ text }: { text: string }) => <TimeSeparator text={text} />)
+
+TimeSeparatorMemo.displayName = "TimeSeparatorMemo"
 
 export default function ConversationScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const theme = useTheme();
-  const { t } = useTranslation();
+  const { id } = useLocalSearchParams<{ id: string }>()
+  const theme = useTheme()
+  const { t } = useTranslation()
 
-  // Validate conversationGroupId
-  if (!id) {
-    return <EmptyState style={{ flex: 1 }} />;
-  }
-  const conversationGroupId = id as string;
+  const conversationGroupId = (id as string) || ""
 
-  const { messages, isLoading, loadOlderMessages, hasOlderMessages } = useMessages(conversationGroupId);
+  const { messages, isLoading, loadOlderMessages, hasOlderMessages } = useMessages(conversationGroupId)
 
   const {
     conversationInfo,
@@ -43,7 +61,7 @@ export default function ConversationScreen() {
     error,
     actionModalVisible,
     deleteMessageModalVisible,
-    flatListRef,
+    flashListRef,
     handleBackPress,
     handleMessageLongPress,
     handleReply,
@@ -54,65 +72,95 @@ export default function ConversationScreen() {
     setDeleteMessageModalVisible,
     confirmDeleteMessage,
     cancelReply,
-  } = useConversation(conversationGroupId);
+  } = useConversation(conversationGroupId)
 
-  // Reverse messages for FlashList v2 (replaces inverted prop)
-  const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
+  // This creates a flat list with both messages and time separators
+  const listData = useMemo(() => {
+    const reversedMessages = [...messages].reverse()
+    const items: ListItem[] = []
 
-  // Handle load more messages (now at start since data is reversed)
-  const handleLoadMore = useCallback(() => {
+    reversedMessages.forEach((message, index) => {
+      const previousMessage = index > 0 ? reversedMessages[index - 1] : undefined
+      const showTimeSeparator = shouldShowTimeSeparator(message, previousMessage)
+
+      // Add time separator if needed
+      if (showTimeSeparator) {
+        items.push({
+          type: "timeSeparator",
+          id: `separator-${message.messageId}`,
+          data: formatTimeSeparator(message.createdAt),
+        })
+      }
+
+      // Add message
+      items.push({
+        type: "message",
+        id: message.messageId,
+        data: message,
+      })
+    })
+
+    return items
+  }, [messages])
+
+  // Important for preventing glitches when scrolling upwards
+  const keyExtractor = useCallback((item: ListItem) => item.id, [])
+
+  // This helps FlashList optimize rendering for different item types
+  const getItemType = useCallback((item: ListItem) => item.type, [])
+
+  const handleStartReached = useCallback(() => {
     if (hasOlderMessages && !isLoading) {
-      console.log("Loading Older Messages...");
-      loadOlderMessages();
+      console.log("[v0] Loading older messages from top...")
+      loadOlderMessages()
     }
-  }, [hasOlderMessages, isLoading, loadOlderMessages]);
+  }, [hasOlderMessages, isLoading, loadOlderMessages])
 
-  // Render message item with time separator
-  const renderMessage = useCallback(
-    ({ item, index }: { item: MessageData; index: number }) => {
-      const previousMessage = index > 0 ? reversedMessages[index - 1] : undefined;
-      const showTimeSeparator = shouldShowTimeSeparator(item, previousMessage);
+  const renderItem = useCallback(
+    ({ item }: { item: ListItem }) => {
+      if (item.type === "timeSeparator") {
+        return <TimeSeparatorMemo text={item.data as string} />
+      }
 
-      return (
-        <>
-          {showTimeSeparator && (
-            <TimeSeparator text={formatTimeSeparator(item.createdAt)} />
-          )}
-          <MessageBubble message={item} onLongPress={handleMessageLongPress} />
-        </>
-      );
+      return <MessageItemMemo item={item.data as MessageData} onLongPress={handleMessageLongPress} />
     },
-    [handleMessageLongPress, reversedMessages]
+    [handleMessageLongPress],
   );
 
-  const renderListHeader = useCallback(() => {
-    if (isLoading && messages.length > 0) {
-      return (
-        <View style={{ paddingVertical: verticalScale(12), alignItems: "center" }}>
-          <ActivityIndicator size="small" color={theme.colors.primary} />
-        </View>
-      );
-    }
-    return null;
-  }, [isLoading, messages.length, theme.colors.primary]);
+  const contentContainerStyle = useMemo(
+    () => ({
+      paddingVertical: verticalScale(16),
+    }),
+    [],
+  )
+
+  const maintainVisibleConfig = useMemo(
+    () => ({
+      autoscrollToBottomThreshold: 0.3,
+      startRenderingFromBottom: true,
+      animateAutoScrollToBottom: true,
+    }),
+    [],
+  )
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-    messagesContent: {
-      paddingVertical: verticalScale(16),
-    },
-  });
+  })
+
+  if (!id) {
+    return <EmptyState style={{ flex: 1 }} />
+  }
 
   // Show loading state when either conversation info or initial messages are loading
   if (isLoadingConversation || (isLoading && messages.length === 0)) {
-    return <ScreenLoading />;
+    return <ScreenLoading />
   }
 
   if (error || !conversationInfo) {
-    return <EmptyState style={{ flex: 1 }} />;
+    return <EmptyState style={{ flex: 1 }} />
   }
 
   return (
@@ -126,19 +174,17 @@ export default function ConversationScreen() {
 
       {/* Messages List */}
       <FlashList
-        ref={flatListRef}
-        contentContainerStyle={styles.messagesContent}
-        data={reversedMessages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.messageId}
-        onStartReached={handleLoadMore}
+        ref={flashListRef}
+        contentContainerStyle={contentContainerStyle}
+        data={listData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        getItemType={getItemType}
+        onStartReached={handleStartReached}
         onStartReachedThreshold={0.1}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={renderListHeader}
-        maintainVisibleContentPosition={{
-          autoscrollToBottomThreshold: 0.3,
-          startRenderingFromBottom: true,
-        }}
+        maintainVisibleContentPosition={maintainVisibleConfig}
+        drawDistance={500}
       />
 
       {/* Message Input */}
@@ -171,5 +217,5 @@ export default function ConversationScreen() {
         onCancel={() => setDeleteMessageModalVisible(false)}
       />
     </KeyboardHandler>
-  );
+  )
 }

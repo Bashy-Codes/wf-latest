@@ -2,7 +2,6 @@ import { Id } from "@/convex/_generated/dataModel";
 
 // Re-export store types
 export * from "./store";
-export * from "./communities";
 export * from "./discussions";
 
 
@@ -44,79 +43,4 @@ export interface UserProfile {
   spokenLanguageCodes: string[];
   learningLanguageCodes: string[];
   hobbies: string[];
-}
-
-export interface LetterData {
-  letterId: Id<"letters">;
-  senderId: Id<"users">;
-  recipientId: Id<"users">;
-  title: string;
-  content: string;
-  deliverAt: number;
-  createdAt: number;
-  sender?: {
-    userId: Id<"users">;
-    name: string;
-    profilePicture: string;
-    gender: "male" | "female" | "other";
-    age: number;
-    country: string;
-  };
-  recipient?: {
-    userId: Id<"users">;
-    name: string;
-    profilePicture: string;
-    gender: "male" | "female" | "other";
-    age: number;
-    country: string;
-  };
-  isDelivered: boolean;
-  daysUntilDelivery?: number;
-}
-
-// Letter data for detail view
-export interface LetterDetailData {
-  letterId: Id<"letters">;
-  title: string;
-  content: string;
-  deliverAt: number;
-  createdAt: number;
-  isSender: boolean;
-  isDelivered: boolean;
-  daysUntilDelivery?: number;
-  otherUser: {
-    name: string;
-    country: string;
-  };
-}
-
-export interface LetterCardProps {
-  letter: {
-    letterId: Id<"letters">;
-    title: string;
-    createdAt: number;
-    deliverAt: number;
-    isDelivered: boolean;
-    daysUntilDelivery?: number;
-    sender?: {
-      userId: string;
-      name: string;
-      profilePicture: string;
-      gender: "male" | "female" | "other";
-      age: number;
-      country: string;
-      activeBadge?: string;
-    };
-    recipient?: {
-      userId: string;
-      name: string;
-      profilePicture: string;
-      gender: "male" | "female" | "other";
-      age: number;
-      country: string;
-      activeBadge?: string;
-    };
-  };
-  onDelete: (letterId: Id<"letters">) => void;
-  onOpen: (letterId: Id<"letters">) => void;
 }

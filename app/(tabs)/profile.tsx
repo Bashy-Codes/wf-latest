@@ -17,6 +17,7 @@ import { PostsSection } from "@/components/profile/PostsSection";
 import { CollectionsSection } from "@/components/profile/CollectionsSection";
 import { GiftsSection } from "@/components/profile/GiftsSection";
 import { PhotosSection } from "@/components/profile/PhotosSection";
+import { KeyboardHandler } from "@/components/KeyboardHandler";
 
 export default function ProfileTab() {
   const theme = useTheme();
@@ -151,7 +152,7 @@ export default function ProfileTab() {
   return (
     <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <TabHeader title={t("screenTitles.profile")} />
-      <View style={styles.content}>
+      <KeyboardHandler style={styles.content}>
         <TabView
           navigationState={{ index, routes }}
           renderScene={renderScene}
@@ -159,7 +160,7 @@ export default function ProfileTab() {
           initialLayout={{ width: layout.width }}
           renderTabBar={renderTabBar}
         />
-      </View>
+      </KeyboardHandler>
     </SafeAreaView>
   );
 }

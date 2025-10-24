@@ -6,6 +6,9 @@ import { useTheme } from "@/lib/Theme";
 import { TabView, TabBar } from "react-native-tab-view";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useUserDetails } from "@/hooks/profile/useUserProfile";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// components
 import { ScreenLoading } from "@/components/ScreenLoading";
 import { ScreenPlaceholder } from "@/components/common/ScreenPlaceholder";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -18,7 +21,7 @@ import { PostsSection } from "@/components/profile/PostsSection";
 import { CollectionsSection } from "@/components/profile/CollectionsSection";
 import { GiftsSection } from "@/components/profile/GiftsSection";
 import { PhotosSection } from "@/components/profile/PhotosSection";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardHandler } from "@/components/KeyboardHandler";
 
 export default function UserProfileScreen() {
   const theme = useTheme();
@@ -41,6 +44,7 @@ export default function UserProfileScreen() {
   const {
     userProfile,
     loading,
+    restrictionError,
     showBlockConfirmation,
     isBlocking,
     showRemoveFriendConfirmation,
@@ -131,6 +135,17 @@ export default function UserProfileScreen() {
     return <ScreenLoading />;
   }
 
+  if (restrictionError) {
+    return (
+      <ScreenPlaceholder
+        title={t("profile.restricted.title")}
+        description={t("profile.restricted.description")}
+        icon="lock-closed"
+        showButton={false}
+      />
+    );
+  }
+
   if (!userProfile) {
     return (
       <ScreenPlaceholder
@@ -152,20 +167,22 @@ export default function UserProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader
-        title={userProfile.name}
-        rightComponent="ellipsis"
-        onRightPress={handleEllipsisPress}
-      />
+    <>
+      <KeyboardHandler style={styles.container}>
+        <ScreenHeader
+          title={userProfile.name}
+          rightComponent="ellipsis"
+          onRightPress={handleEllipsisPress}
+        />
 
-      <TabView
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        initialLayout={{ width: layout.width }}
-        renderTabBar={renderTabBar}
-      />
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={{ width: layout.width }}
+          renderTabBar={renderTabBar}
+        />
+      </KeyboardHandler>
 
       <ActionModal ref={actionModalRef} options={actionModalOptions} />
       <ConfirmationModal
@@ -201,6 +218,6 @@ export default function UserProfileScreen() {
         state={blockLoadingModalState === "hidden" ? "loading" : blockLoadingModalState}
         onComplete={handleBlockLoadingModalComplete}
       />
-    </View>
+    </>
   );
 }

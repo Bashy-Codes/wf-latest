@@ -8,14 +8,41 @@ import {
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/lib/Theme";
-import { LetterCardProps } from "@/types";
-import { getCountryByCode } from "@/constants/geographics";
 import { ActionModal, ActionModalRef } from "@/components/common/ActionModal";
 import { useTranslation } from "react-i18next";
 import AgeGenderChip from "../ui/AgeGenderChip";
 import ProfilePhoto from "../ui/ProfilePhoto";
 import NameContainer from "../ui/NameContainer";
+import { Id } from "@/convex/_generated/dataModel";
 
+interface LetterCardProps {
+  letter: {
+    letterId: Id<"letters">;
+    title: string;
+    createdAt: number;
+    status: "pending" | "delivered";
+    sender?: {
+      userId: string;
+      name: string;
+      profilePicture: string;
+      gender: "male" | "female" | "other";
+      age: number;
+      country: string;
+      activeBadge?: string;
+    };
+    recipient?: {
+      userId: string;
+      name: string;
+      profilePicture: string;
+      gender: "male" | "female" | "other";
+      age: number;
+      country: string;
+      activeBadge?: string;
+    };
+  };
+  onDelete: (letterId: Id<"letters">) => void;
+  onOpen: (letterId: Id<"letters">) => void;
+}
 
 export const LetterCard: React.FC<LetterCardProps> = ({
   letter,
@@ -32,18 +59,11 @@ export const LetterCard: React.FC<LetterCardProps> = ({
   const isReceived = !!letter.sender;
   const displayUser = isReceived ? letter.sender! : letter.recipient!;
 
-  // Get status icon and text
   const getStatusIcon = () => {
     if (isReceived) {
-      // For received letters, show truck-fast icon for "composed X days ago"
       return "truck-delivery";
     } else {
-      // For sent letters, show delivery status icons
-      if (letter.isDelivered) {
-        return "truck-check"; // Delivered
-      } else {
-        return "truck-fast"; // Delivers in X days
-      }
+      return letter.status === "delivered" ? "truck-check" : "truck-fast";
     }
   };
 
@@ -51,7 +71,7 @@ export const LetterCard: React.FC<LetterCardProps> = ({
     if (isReceived) {
       return theme.colors.success;
     } else {
-      return letter.isDelivered ? theme.colors.success : theme.colors.textMuted;
+      return letter.status === "delivered" ? theme.colors.success : theme.colors.textMuted;
     }
   };
 
@@ -87,21 +107,9 @@ export const LetterCard: React.FC<LetterCardProps> = ({
     userInfo: {
       flex: 1,
     },
-
     userDetails: {
       fontSize: moderateScale(12),
       color: theme.colors.textSecondary,
-    },
-    flagContainer: {
-      backgroundColor: theme.colors.background,
-      width: scale(62),
-      height: scale(62),
-      borderRadius: theme.borderRadius.lg,
-      justifyContent: "center",
-      alignItems: "center"
-    },
-    flag: {
-      fontSize: moderateScale(36),
     },
     title: {
       fontSize: moderateScale(24),
@@ -167,11 +175,6 @@ export const LetterCard: React.FC<LetterCardProps> = ({
               age={displayUser.age}
               style={{ justifyContent: "flex-start", marginLeft: scale(10) }}
             />
-          </View>
-          <View style={styles.flagContainer}>
-            <Text style={styles.flag}>
-              {getCountryByCode(displayUser.country)?.flag}
-            </Text>
           </View>
         </View>
 

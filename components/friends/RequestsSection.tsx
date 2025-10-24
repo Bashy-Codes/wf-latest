@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";

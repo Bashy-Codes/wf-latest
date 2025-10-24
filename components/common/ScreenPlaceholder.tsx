@@ -8,6 +8,7 @@ import { ScreenHeader } from "../ScreenHeader"
 
 interface ScreenPlaceholderProps {
   title: string
+  description?: string
   icon: keyof typeof Ionicons.glyphMap;
   showButton?: boolean
   onButtonPress?: () => void
@@ -16,6 +17,7 @@ interface ScreenPlaceholderProps {
 
 export const ScreenPlaceholder: React.FC<ScreenPlaceholderProps> = ({
   title,
+  description,
   icon,
   showButton = false,
   onButtonPress,
@@ -42,7 +44,14 @@ export const ScreenPlaceholder: React.FC<ScreenPlaceholderProps> = ({
       fontWeight: "700",
       color: theme.colors.primary,
       textAlign: "center",
+      marginBottom: description ? verticalScale(12) : verticalScale(30),
+    },
+    description: {
+      fontSize: moderateScale(16),
+      color: theme.colors.textSecondary,
+      textAlign: "center",
       marginBottom: verticalScale(30),
+      lineHeight: moderateScale(24),
     },
     Button: {
       backgroundColor: theme.colors.primary,
@@ -77,6 +86,7 @@ export const ScreenPlaceholder: React.FC<ScreenPlaceholderProps> = ({
           style={styles.icon}
         />
         <Text style={styles.title}>{title}</Text>
+        {description && <Text style={styles.description}>{description}</Text>}
 
         {showButton && onButtonPress && (
           <TouchableOpacity style={styles.Button} onPress={onButtonPress} activeOpacity={0.8}>

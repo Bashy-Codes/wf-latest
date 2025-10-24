@@ -81,6 +81,10 @@
       "photos": "You must be friends to view this user's photos",
       "gifts": "You must be friends to view this user's gifts"
     },
+    "restricted": {
+      "title": "Profile Not Accessible",
+      "description": "This profile cannot be viewed. We hope you respect this user's privacy preferences."
+    },
     "friendRequestModal": {
       "title": "Friend Request",
       "description": "Send a friend request to "

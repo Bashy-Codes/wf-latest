@@ -12,7 +12,7 @@ import {
   getLanguageByCode,
 } from "@/constants/geographics";
 import { Separator } from "@/components/common/Separator";
-import { KeyboardHandler } from "@/components/common/KeyboardHandler";
+import { KeyboardHandler } from "@/components/KeyboardHandler";
 import { ItemSelector } from "@/components/common/ItemSelector";
 import { SelectedItem } from "@/components/common/SelectedItem";
 

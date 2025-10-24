@@ -7,6 +7,8 @@ import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { useTheme } from "@/lib/Theme";
 import ProfilePhoto from "@/components/ui/ProfilePhoto";
 import { Id } from "@/convex/_generated/dataModel";
+import { router } from "expo-router";
+import { handleUrlParams } from "expo-router/build/fork/getStateFromPath-forks";
 
 interface ConversationHeaderProps {
   otherUser: {
@@ -27,6 +29,10 @@ export const ConversationHeader: React.FC<ConversationHeaderProps> = ({
 }) => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+
+  const hanldeUserPress = () => {
+    router.push(`/screens/user-profile/${otherUser.userId}`)
+  };
 
   const styles = useMemo(
     () =>
@@ -116,7 +122,7 @@ export const ConversationHeader: React.FC<ConversationHeaderProps> = ({
           />
         </TouchableOpacity>
 
-        <View style={styles.profileSection}>
+        <TouchableOpacity style={styles.profileSection} onPress={hanldeUserPress}>
           <View style={styles.profilePicture}>
             <ProfilePhoto
               profilePicture={otherUser.profilePicture}
@@ -146,7 +152,7 @@ export const ConversationHeader: React.FC<ConversationHeaderProps> = ({
               )}
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Right Section - Options Button */}

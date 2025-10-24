@@ -5,8 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/Theme";
+import { PostTypes } from "@/types/feed";
 import { formatTimeAgo } from "@/utils/formatTime";
-import { PostCardProps } from "@/types/feed";
 import { Id } from "@/convex/_generated/dataModel";
 import { Separator } from "@/components/common/Separator";
 import { AddReactionModal } from "./AddReactionModal";
@@ -14,6 +14,18 @@ import { PostMeta } from "./PostMeta";
 import { PostImages } from "./PostImages";
 import NameContainer from "@/components/ui/NameContainer";
 
+// Props for Post Card
+interface PostCardProps {
+  post: PostTypes;
+  onReaction: (postId: Id<"posts">, emoji: string) => void;
+  onComment: (postId: Id<"posts">) => void;
+  onImagePress: (images: string[], index: number) => void;
+  onReadMore: (postId: Id<"posts">) => void;
+  onReactionsPress: (postId: Id<"posts">) => void;
+  onUserPress?: (userId: Id<"users">, isOwner: boolean, isAdmin: boolean) => void;
+  onOptionsPress?: (post: PostTypes) => void;
+  showFullText?: boolean;
+}
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 

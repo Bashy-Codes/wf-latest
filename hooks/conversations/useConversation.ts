@@ -31,7 +31,7 @@ export const useConversation = (conversationGroupId: string) => {
   const convex = useConvex();
 
   // Refs
-  const flatListRef = useRef<FlashListRef<MessageData>>(null);
+  const flashListRef = useRef<FlashListRef<any>>(null);
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
   // State
@@ -193,14 +193,7 @@ export const useConversation = (conversationGroupId: string) => {
     return () => backHandler.remove();
   }, [conversationGroupId, markAsReadMutation, router]);
 
-  // ===== SCROLL MANAGEMENT =====
-
-  // Scroll to bottom function
-  const scrollToBottom = useCallback(() => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToEnd({ animated: true });
-    }
-  }, []);
+  // ===== Handlers =====
 
   // Navigation handlers
   const handleBackPress = useCallback(() => {
@@ -269,7 +262,7 @@ export const useConversation = (conversationGroupId: string) => {
     deleteMessageModalVisible,
 
     // Refs
-    flatListRef,
+    flashListRef,
 
     // Handlers
     handleBackPress,
@@ -278,7 +271,6 @@ export const useConversation = (conversationGroupId: string) => {
     handleDeleteMessage,
     handleSendMessage,
     handleSendImage,
-    scrollToBottom,
 
     // Modal handlers
     setActionModalVisible,

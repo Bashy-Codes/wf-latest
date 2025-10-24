@@ -28,7 +28,6 @@ export default function LetterDetailScreen() {
     hasError,
     handleBack,
     getTimeAgo,
-    getDaysUntilDelivery,
   } = useLetter(letterId);
 
   const styles = StyleSheet.create({
@@ -135,9 +134,9 @@ export default function LetterDetailScreen() {
         <View style={styles.deliverySection}>
           <View style={styles.deliveryIconContainer}>
             <MaterialCommunityIcons
-              name={letter.isDelivered ? "truck-check" : "truck-fast"}
+              name={letter.status === "delivered" ? "truck-check" : "truck-fast"}
               size={scale(76)}
-              color={letter.isDelivered ? theme.colors.success : theme.colors.primary}
+              color={letter.status === "delivered" ? theme.colors.success : theme.colors.primary}
             />
           </View>
 
@@ -161,14 +160,14 @@ export default function LetterDetailScreen() {
             {/* Time Card */}
             <View style={styles.infoCard}>
               <Ionicons
-                name={letter.isDelivered ? "time" : "timer"}
+                name="time"
                 size={scale(24)}
                 color={theme.colors.info}
                 style={styles.infoIcon}
               />
               <View style={styles.infoValueRow}>
                 <Text style={styles.infoValue}>
-                  {letter.isDelivered ? getTimeAgo() : getDaysUntilDelivery()}
+                  {getTimeAgo()}
                 </Text>
               </View>
             </View>

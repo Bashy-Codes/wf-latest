@@ -3,9 +3,18 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { useTheme } from "@/lib/Theme";
-import type { CollectionCardProps } from "@/types/feed";
+import type { CollectionTypes } from "@/types/feed";
 import { useTranslation } from "react-i18next";
 import { Separator } from "@/components/common/Separator";
+import { Id } from "@/convex/_generated/dataModel";
+
+// Props for Collection Card
+interface CollectionCardProps {
+  collection: CollectionTypes;
+  onViewPress: (collectionId: Id<"collections">) => void;
+  onDeletePress?: (collectionId: Id<"collections">) => void;
+  showDeleteButton?: boolean;
+}
 
 export const CollectionCard: React.FC<CollectionCardProps> = ({
   collection,

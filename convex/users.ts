@@ -4,7 +4,7 @@ import { v } from "convex/values";
 import { r2 } from "./storage";
 import { Id } from "./_generated/dataModel";
 import { createNotification } from "./notifications";
-import { areFriends, calculateAge } from "./helpers";
+import { areFriends, calculateAge, checkUsersPrivacy } from "./helpers";
 
 function getAgeGroup(birthDate: string): "13-17" | "18-100" {
   const age = calculateAge(birthDate);
@@ -118,6 +118,12 @@ export const getUserProfile = query({
     // If blocked in either direction, don't show profile
     if (isBlocked || isBlockedBy) {
       throw new Error("User profile not accessible");
+    }
+
+    // Check privacy restrictions
+    const canView = await checkUsersPrivacy(ctx, currentUserId, args.userId);
+    if (!canView) {
+      return null;
     }
 
     // Check friendship status

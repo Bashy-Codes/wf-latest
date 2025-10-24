@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons"
 import { signUpSchema, signInSchema, type SignUpFormData, type SignInFormData } from "@/validations/auth"
 import { useTheme } from "@/lib/Theme"
 import { scale, verticalScale, moderateScale } from "react-native-size-matters"
-import { KeyboardHandler } from "@/components/common/KeyboardHandler"
+import { KeyboardHandler } from "@/components/KeyboardHandler"
 import { Button } from "@/components/ui/Button"
 import { useTranslation } from "react-i18next"
 

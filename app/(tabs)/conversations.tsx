@@ -2,16 +2,14 @@ import React, { useMemo, useCallback, useRef, useState } from "react";
 import {
   View,
   StyleSheet,
-  FlatList,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { FlashList } from "@shopify/flash-list";
+import { Ionicons } from "@expo/vector-icons";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
-import Toast from "react-native-toast-message";
 import { useTheme } from "@/lib/Theme";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { useConversations } from "@/hooks/conversations/useConversations";
 import { ConversationData } from "@/types/conversations";
 
@@ -32,10 +30,8 @@ import { EmptyState } from "@/components/EmptyState";
 export default function ConversationsTab() {
   const theme = useTheme();
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { conversations, isLoading, loading, loadMore, hasMore } =
-    useConversations();
+
 
   // Refs
   const actionSheetRef = useRef<ActionModalRef>(null);
@@ -44,16 +40,17 @@ export default function ConversationsTab() {
   const [selectedConversation, setSelectedConversation] = useState<ConversationData | null>(null);
   const [deleteConversationModalVisible, setDeleteConversationModalVisible] = useState(false);
 
-  // Mutation for deleting conversation
-  const deleteConversationMutation = useMutation(api.communications.conversations.deleteConversation);
+  const {
+    conversations,
+    loading,
+    hasMore,
+    searchQuery,
+    setSearchQuery,
+    handleConversationPress,
+    handleDeleteConversation,
+    loadMoreConversations
+  } = useConversations();
 
-  // Navigation handler for conversation item press
-  const handleConversationPress = useCallback(
-    (conversationGroupId: string) => {
-      router.push(`/screens/conversation/${conversationGroupId}` as any);
-    },
-    [router]
-  );
 
   // Long press handler for conversation item
   const handleConversationLongPress = useCallback(
@@ -65,7 +62,7 @@ export default function ConversationsTab() {
   );
 
   // Handle delete conversation action
-  const handleDeleteConversation = useCallback(() => {
+  const handleDeleteAction = useCallback(() => {
     setDeleteConversationModalVisible(true);
   }, []);
 
@@ -73,30 +70,10 @@ export default function ConversationsTab() {
   const confirmDeleteConversation = useCallback(async () => {
     if (!selectedConversation) return;
 
-    try {
-      await deleteConversationMutation({
-        conversationGroupId: selectedConversation.conversationGroupId
-      });
-
-      Toast.show({
-        type: "success",
-        text1: t("toasts.conversationDeleted.text1"),
-        text2: t("toasts.conversationDeleted.text2"),
-        position: "top",
-      });
-    } catch (error) {
-      console.error("Failed to delete conversation:", error);
-      Toast.show({
-        type: "error",
-        text1: t("errorToasts.genericError.text1"),
-        text2: t("errorToasts.genericError.text2"),
-        position: "top",
-      });
-    } finally {
-      setDeleteConversationModalVisible(false);
-      setSelectedConversation(null);
-    }
-  }, [selectedConversation, deleteConversationMutation, t]);
+    await handleDeleteConversation(selectedConversation.conversationGroupId);
+    setDeleteConversationModalVisible(false);
+    setSelectedConversation(null);
+  }, [selectedConversation, handleDeleteConversation]);
 
   // Cancel delete conversation
   const cancelDeleteConversation = useCallback(() => {
@@ -104,12 +81,6 @@ export default function ConversationsTab() {
     setSelectedConversation(null);
   }, []);
 
-  // Load more handler
-  const handleLoadMore = useCallback(() => {
-    if (hasMore && !isLoading) {
-      loadMore(10);
-    }
-  }, [hasMore, isLoading, loadMore]);
 
   // Action Modal options
   const actionModalOptions: ActionModalOption[] = useMemo(
@@ -119,10 +90,10 @@ export default function ConversationsTab() {
         title: t("actions.deleteConversation"),
         icon: "trash",
         color: theme.colors.error,
-        onPress: handleDeleteConversation,
+        onPress: handleDeleteAction,
       },
     ],
-    [theme.colors.error, handleDeleteConversation, t]
+    [theme.colors.error, handleDeleteAction, t]
   );
 
   // Render conversation item
@@ -158,77 +129,85 @@ export default function ConversationsTab() {
     return <EmptyState fullScreen />;
   }, [loading]);
 
-  const styles =
-    StyleSheet.create({
-      container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-      },
-      contentContainer: {
-        flex: 1,
-      },
-      list: {
-        flex: 1,
-      },
-      listContent: {
-        paddingTop: verticalScale(8),
-        paddingBottom: insets.bottom + verticalScale(20),
-      },
-      footerLoader: {
-        paddingVertical: verticalScale(20),
-        alignItems: "center",
-      },
-      emptyState: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: scale(32),
-      },
-      emptyTitle: {
-        fontSize: moderateScale(20),
-        fontWeight: "600",
-        marginBottom: verticalScale(8),
-        textAlign: "center",
-      },
-      emptyDescription: {
-        fontSize: moderateScale(16),
-        textAlign: "center",
-        lineHeight: moderateScale(22),
-      },
-      loadingContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      },
-    });
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    searchContainer: {
+      paddingHorizontal: scale(16),
+      paddingVertical: verticalScale(8),
+      backgroundColor: theme.colors.background,
+      marginTop: verticalScale(100)
+    },
+    searchInputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.colors.surface,
+      borderRadius: scale(theme.borderRadius.md),
+      paddingHorizontal: scale(12),
+      height: verticalScale(44),
+    },
+    searchIcon: {
+      marginRight: scale(8),
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: moderateScale(16),
+      color: theme.colors.text,
+    },
+    contentContainer: {
+      flex: 1,
+    },
+    listContent: {
+      paddingTop: verticalScale(12),
+      paddingBottom: insets.bottom + verticalScale(20),
+    },
+    footerLoader: {
+      paddingVertical: verticalScale(20),
+      alignItems: "center",
+    },
+  });
 
   return (
     <View style={styles.container}>
       <TabHeader title={t("screenTitles.conversations")} />
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper}>
+          <Ionicons
+            name="search"
+            size={scale(20)}
+            color={theme.colors.textMuted}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={"Search conversations..."}
+            placeholderTextColor={theme.colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+        </View>
+      </View>
+
       <View style={styles.contentContainer}>
-        <FlatList
-          style={styles.list}
-          contentContainerStyle={
-            (styles.listContent,
-            {
-              paddingBottom: verticalScale(100),
-              paddingTop: verticalScale(100),
-            })
-          }
+        <FlashList
           data={loading ? skeletonData : conversations}
           renderItem={loading ? renderSkeleton : renderConversationItem}
           keyExtractor={(item, index) =>
             loading ? `skeleton-${index}` : item.conversationGroupId
           }
-          onEndReached={handleLoadMore}
+          onEndReached={loadMoreConversations}
           onEndReachedThreshold={0.5}
           ListFooterComponent={renderFooter}
           ListEmptyComponent={!loading ? renderEmptyState : null}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          initialNumToRender={10}
+          contentContainerStyle={styles.listContent}
         />
       </View>
 

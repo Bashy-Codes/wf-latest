@@ -154,13 +154,13 @@ const lettersTables = {
     recipientId: v.id("users"),
     title: v.string(),
     content: v.string(),
-    deliverAt: v.number(), // Unix timestamp for when the letter should be delivered
+    status: v.union(v.literal("pending"), v.literal("delivered")),
+    scheduledFunctionId: v.optional(v.id("_scheduled_functions")),
   })
     .index("by_sender", ["senderId"])
     .index("by_recipient", ["recipientId"])
-    .index("by_recipient_deliverAt", ["recipientId", "deliverAt"])
-    .index("by_sender_deliverAt", ["senderId", "deliverAt"])
-    .index("by_deliverAt", ["deliverAt"]),
+    .index("by_recipient_status", ["recipientId", "status"])
+    .index("by_sender_status", ["senderId", "status"]),
 };
 
 /*

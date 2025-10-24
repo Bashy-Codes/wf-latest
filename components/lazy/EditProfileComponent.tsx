@@ -11,7 +11,7 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { LoadingModal } from "@/components/common/LoadingModal";
 import { useEditProfile } from "@/hooks/useEditProfile";
 import { useTranslation } from "react-i18next";
-import { KeyboardHandler } from "@/components/common/KeyboardHandler";
+import { KeyboardHandler } from "@/components/KeyboardHandler";
 import { Button } from "@/components/ui/Button";
 
 export const EditProfileComponent = () => {

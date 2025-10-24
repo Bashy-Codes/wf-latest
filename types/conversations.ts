@@ -10,6 +10,7 @@ export interface ConversationData {
   lastMessageId?: Id<"messages">;
   lastMessageTime: number;
   hasUnreadMessages: boolean;
+  lastMessage?: MessageData;
   otherUser: {
     userId: Id<"users">;
     name: string;
@@ -17,10 +18,18 @@ export interface ConversationData {
     isAdmin?: boolean;
     activeBadge?: string;
   };
-  lastMessage?: MessageData;
 }
 
+
+/**
+ * Conversation Message types
+ */
 export interface MessageData {
+  sender: {
+    userId: Id<"users">;
+    name: string;
+    profilePicture: string | null;
+  };
   messageId: Id<"messages">;
   createdAt: number;
   conversationGroupId: string;
@@ -39,21 +48,13 @@ export interface MessageData {
       profilePicture: string | null;
     };
   };
-  sender: {
-    userId: Id<"users">;
-    name: string;
-    profilePicture: string | null;
-  };
   isOwner: boolean;
   imageUrl?: string;
 }
 
-// Props for ConversationItem component
-export interface ConversationItemProps {
-  conversation: ConversationData;
-  onPress: (conversationGroupId: string) => void;
-}
-
+/**
+ * Conversation Info types
+ */
 export interface ConversationInfo {
   otherUser: {
     userId: Id<"users">;

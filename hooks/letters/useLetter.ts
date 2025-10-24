@@ -54,15 +54,6 @@ export const useLetter = (letterId: Id<"letters">) => {
     }
   }, [letter, t]);
 
-  // Calculate days until delivery
-  const getDaysUntilDelivery = useCallback(() => {
-    if (!letter || letter.isDelivered) return "";
-    const now = Date.now();
-    const diffMs = letter.deliverAt - now;
-    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    return days === 1 ? "1 ☀️" : `${days}`;
-  }, [letter]);
-
   return {
     // Data
     letter,
@@ -76,6 +67,5 @@ export const useLetter = (letterId: Id<"letters">) => {
 
     // Utilities
     getTimeAgo,
-    getDaysUntilDelivery,
   };
 };

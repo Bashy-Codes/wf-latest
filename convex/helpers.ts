@@ -109,11 +109,44 @@ export const decrementCollectionPostsCount = async (
   }
 };
 
+
+
 /**
- * Helper function to calculate days until delivery
+ * Helper function to check age group and gender preference compatibility between two users
  */
-export function calculateDaysUntilDelivery(deliverAt: number): number {
-  const now = Date.now();
-  const diffMs = deliverAt - now;
-  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+export async function checkUsersPrivacy(
+  ctx: QueryCtx | MutationCtx,
+  userId1: Id<"users">,
+  userId2: Id<"users">
+): Promise<boolean> {
+  const [user1, user2, userInfo1, userInfo2] = await Promise.all([
+    ctx.db.get(userId1),
+    ctx.db.get(userId2),
+    ctx.db
+      .query("userInformation")
+      .withIndex("by_userId", (q) => q.eq("userId", userId1))
+      .unique(),
+    ctx.db
+      .query("userInformation")
+      .withIndex("by_userId", (q) => q.eq("userId", userId2))
+      .unique(),
+  ]);
+
+  if (!user1 || !user2 || !userInfo1 || !userInfo2) {
+    return false;
+  }
+
+  if (userInfo1.ageGroup !== userInfo2.ageGroup) {
+    return false;
+  }
+
+  if (userInfo1.genderPreference && user1.gender !== user2.gender) {
+    return false;
+  }
+
+  if (userInfo2.genderPreference && user2.gender !== user1.gender) {
+    return false;
+  }
+
+  return true;
 }

@@ -108,7 +108,7 @@ export default function InventoryScreen() {
     },
     content: {
       flex: 1,
-      paddingTop: verticalScale(16),
+      paddingHorizontal: verticalScale(16),
     },
   });
 

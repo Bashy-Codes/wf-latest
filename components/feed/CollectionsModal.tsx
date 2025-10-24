@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useCallback, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
-import { usePaginatedQuery, useConvexAuth } from "convex/react";
+import { usePaginatedQuery } from "convex/react";
 import type { CollectionTypes } from "@/types/feed";
 import { SelectionModal, SelectionModalRef, SelectionItem } from "@/components/ui/SelectionModal";
 
