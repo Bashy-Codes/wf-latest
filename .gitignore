@@ -10,3 +10,4 @@ package-lock.json
 .expo
 .amazonq
 .cursor
+.env
