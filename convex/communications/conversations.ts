@@ -6,6 +6,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { createNotification } from "../notifications";
 import { areFriends } from "../helpers";
 import { r2 } from "../storage";
+import { sendPushNotification } from "../pushNotifications";
 
 // Helper function to generate conversation group ID
 function generateConversationGroupId(
@@ -159,6 +160,29 @@ export const sendMessage = mutation({
         lastMessageId: messageId,
         lastMessageTime: currentTime,
         hasUnreadMessages: true,
+      });
+    }
+
+    // Get sender user data for push notification
+    const senderUser = await ctx.db.get(senderId);
+
+    if (senderUser) {
+      // Send push notification to receiver
+      let notificationBody = "";
+      if (type === "text" && content) {
+        notificationBody = content.length > 100 ? content.substring(0, 100) + "..." : content;
+      } else if (type === "image") {
+        notificationBody = "Sent you an image";
+      }
+
+      await sendPushNotification(ctx, otherUserId, {
+        title: senderUser.name,
+        body: notificationBody,
+        data: {
+          type: "new_message",
+          conversationGroupId,
+          senderId,
+        },
       });
     }
 

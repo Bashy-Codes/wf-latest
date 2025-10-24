@@ -11,9 +11,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/providers/ToastConfig";
 import "@/lib/i18n"
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 function AppContent() {
   const theme = useTheme();
+  usePushNotifications();
 
   return (
     <ConvexAuthProvider client={convex} storage={storageConfig}>

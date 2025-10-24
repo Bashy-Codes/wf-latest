@@ -6,6 +6,7 @@ import { v } from "convex/values";
 import { createNotification } from "./notifications";
 import { areFriends, calculateAge, hasPendingRequest, checkUsersPrivacy } from "./helpers";
 import { r2 } from "./storage";
+import { sendPushNotification } from "./pushNotifications";
 
 async function batchEnrichProfiles(
   ctx: QueryCtx,
@@ -127,6 +128,16 @@ export const sendFriendRequest = mutation({
         currentUserId,
         "friend_request_sent",
       );
+
+      // Send push notification
+      await sendPushNotification(ctx, args.receiverId, {
+        title: "New Friend Request",
+        body: `${senderUser.name} sent you a friend request`,
+        data: {
+          type: "friend_request_sent",
+          senderId: currentUserId,
+        },
+      });
     }
 
     return { success: true };
@@ -266,6 +277,16 @@ export const acceptFriendRequest = mutation({
         currentUserId,
         "friend_request_accepted",
       );
+
+      // Send push notification
+      await sendPushNotification(ctx, request.senderId, {
+        title: "Friend Request Accepted",
+        body: `${accepterUser.name} accepted your friend request`,
+        data: {
+          type: "friend_request_accepted",
+          accepterId: currentUserId,
+        },
+      });
     }
 
     return { success: true };
